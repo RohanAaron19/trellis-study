@@ -4,6 +4,9 @@ from threading import Lock
 import uuid
 import random
 import os
+import csv
+import io
+from flask import Response
 
 app = Flask(__name__)
 app.secret_key = 'trellis_study_secret'
@@ -130,6 +133,24 @@ def study():
 @app.route('/done')
 def done():
     return render_template('done.html')
+
+@app.route('/admin/download')
+def download_data():
+    all_responses = responses_table.all()
+    if not all_responses:
+        return "No data yet.", 200
+
+    output = io.StringIO()
+    fieldnames = ['participant_id', 'age', 'object', 'phase', 'choice', 'video_A', 'video_B', 'chose_round']
+    writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
+    writer.writeheader()
+    writer.writerows(all_responses)
+
+    return Response(
+        output.getvalue(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment; filename=study_results.csv'}
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)
