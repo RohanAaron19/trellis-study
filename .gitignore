@@ -1,0 +1,5 @@
+database.json
+static/videos/
+__pycache__/
+*.pyc
+.env
