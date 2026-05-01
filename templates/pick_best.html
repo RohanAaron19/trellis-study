@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TRELLIS Study</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1100px; margin: 40px auto; text-align: center; background: #f9f9f9; }
+        h2 { color: #2c3e50; font-size: 1.3em; }
+        .grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 30px; }
+        .card { background: white; border-radius: 10px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); width: 220px; }
+        .card video { width: 100%; border-radius: 6px; }
+        .btn-choice { margin-top: 12px; padding: 10px 20px; background: #2c3e50; color: white; border: none; border-radius: 8px; font-size: 0.95em; cursor: pointer; width: 100%; }
+        .btn-choice:hover { background: #1a252f; }
+        .progress { color: #888; font-size: 0.9em; margin-top: 6px; }
+        .progressbar { width: 100%; background: #ddd; border-radius: 8px; height: 10px; margin: 10px auto; max-width: 600px; }
+        .progressbar-fill { height: 10px; background: #2c3e50; border-radius: 8px; width: {{ (current / total * 100)|int }}%; }
+    </style>
+</head>
+<body>
+    <h2>Which 3D model better represents</h2>
+    <p style="font-size: 2.2em; font-weight: bold; color: #2c3e50; margin: 8px 0;">{{ label }}</p>
+    <div class="progressbar"><div class="progressbar-fill"></div></div>
+
+    <div class="grid">
+        {% for it in iterations %}
+        <div class="card">
+            <video src="/videos/{{ obj }}/{{ it }}.mp4" autoplay loop muted playsinline></video>
+            <form method="POST" action="/study">
+                <input type="hidden" name="choice" value="{{ it }}">
+                <button class="btn-choice" type="submit">Select</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
