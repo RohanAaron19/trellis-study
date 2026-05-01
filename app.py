@@ -15,7 +15,7 @@ db_lock = Lock()
 OBJECTS = {
     'antique_globe':           {'label': 'an antique globe',     'iterations': ['round2','round3','round4','round5','round6','round7']},
     'menora_1':                {'label': 'a menorah',            'iterations': ['round2','round3','round4']},
-    'computer_mouse.':         {'label': 'a computer mouse',     'iterations': ['round2','round3','round4','round5']},
+    'computer_mouse':         {'label': 'a computer mouse',     'iterations': ['round2','round3','round4','round5']},
     'Mr_teddy':                {'label': 'a teddy bear',         'iterations': ['round2','round3','round4','round5','round6']},
     'telephone_Vintage_Phone': {'label': 'a vintage telephone',  'iterations': ['round2','round3','round4','round5']},
     'pencil':                  {'label': 'a pencil',             'iterations': ['round2','round3','round4','round5','round6']},
