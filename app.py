@@ -55,7 +55,7 @@ def index():
 def start():
     session['object_index'] = 0
     session['phase'] = 'pick_best'
-    session['age'] = request.args.get('age', 'not provided')
+    session['age'] = request.args.get('birth_year', 'not provided')
     return redirect(url_for('study'))
 
 @app.route('/study', methods=['GET', 'POST'])
