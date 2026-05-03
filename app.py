@@ -6,7 +6,9 @@ import random
 import os
 import csv
 import io
+import json
 from flask import Response
+from scipy.stats import binomtest
 
 app = Flask(__name__)
 app.secret_key = 'trellis_study_secret'
@@ -68,7 +70,6 @@ def study():
         phase = session['phase']
 
         if phase == 'pick_best':
-            # Store their chosen iteration and set up shuffled A/B for phase 2
             session['best_iteration'] = choice
             if random.random() > 0.5:
                 session['video_A'] = 'round1'
@@ -89,7 +90,6 @@ def study():
             return redirect(url_for('study'))
 
         else:
-            # choice is 'A' or 'B', log what they actually picked
             with db_lock:
                 responses_table.insert({
                     'participant_id': session['participant_id'],
@@ -151,22 +151,24 @@ def download_data():
         headers={'Content-Disposition': 'attachment; filename=study_results.csv'}
     )
 
+@app.route('/admin/db')
+def view_db():
+    all_responses = responses_table.all()
+    return f"<pre>{json.dumps(all_responses, indent=2)}</pre>"
+
 @app.route('/admin')
 def admin_dashboard():
     all_responses = responses_table.all()
-    
-    # Count unique participants who completed the study
+
     completed = {}
     for r in all_responses:
         pid = r['participant_id']
         if pid not in completed:
             completed[pid] = set()
         completed[pid].add(r['object'])
-    
+
     total_participants = len(completed)
-    total_objects = len(OBJECTS)
-    
-    # Per object stats
+
     object_stats = {}
     for obj in OBJECTS:
         object_stats[obj] = {
@@ -175,16 +177,18 @@ def admin_dashboard():
             'refined_wins': 0,
             'baseline_wins': 0,
         }
-    
+
     for r in all_responses:
         if r['phase'] == 'vs_baseline' and r['object'] in object_stats:
+            chose = r.get('chose_round', 'round1')
+            if not str(chose).startswith('round'):
+                continue
             object_stats[r['object']]['responses'] += 1
-            if r.get('chose_round', 'round1') != 'round1':
+            if chose != 'round1':
                 object_stats[r['object']]['refined_wins'] += 1
             else:
                 object_stats[r['object']]['baseline_wins'] += 1
-    
-    # Overall win rate
+
     total_comparisons = sum(o['responses'] for o in object_stats.values())
     total_refined_wins = sum(o['refined_wins'] for o in object_stats.values())
     overall_win_rate = round((total_refined_wins / total_comparisons * 100), 1) if total_comparisons > 0 else 0
@@ -196,19 +200,21 @@ def admin_dashboard():
         <title>Study Admin Dashboard</title>
         <meta http-equiv="refresh" content="30">
         <style>
-            body {{ font-family: Arial, sans-serif; max-width: 1000px; margin: 40px auto; background: #f9f9f9; padding: 0 20px; }}
+            body {{ font-family: Arial, sans-serif; max-width: 1200px; margin: 40px auto; background: #f9f9f9; padding: 0 20px; }}
             h1 {{ color: #2c3e50; }}
             .stats {{ display: flex; gap: 20px; margin: 30px 0; flex-wrap: wrap; }}
             .stat-card {{ background: white; border-radius: 10px; padding: 20px 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; }}
             .stat-card h2 {{ font-size: 2.5em; color: #2c3e50; margin: 0; }}
             .stat-card p {{ color: #888; margin: 5px 0 0; }}
             table {{ width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }}
-            th {{ background: #2c3e50; color: white; padding: 12px 16px; text-align: left; }}
-            td {{ padding: 10px 16px; border-bottom: 1px solid #eee; }}
+            th {{ background: #2c3e50; color: white; padding: 12px 16px; text-align: left; font-size: 0.9em; }}
+            td {{ padding: 10px 16px; border-bottom: 1px solid #eee; font-size: 0.9em; }}
             tr:last-child td {{ border-bottom: none; }}
             .win {{ color: green; font-weight: bold; }}
             .lose {{ color: #e74c3c; font-weight: bold; }}
-            .bar-bg {{ background: #eee; border-radius: 4px; height: 10px; width: 150px; display: inline-block; vertical-align: middle; }}
+            .sig {{ color: green; font-weight: bold; }}
+            .not-sig {{ color: #e74c3c; }}
+            .bar-bg {{ background: #eee; border-radius: 4px; height: 10px; width: 120px; display: inline-block; vertical-align: middle; }}
             .bar-fill {{ background: #2c3e50; border-radius: 4px; height: 10px; }}
             .refresh {{ color: #888; font-size: 0.85em; margin-top: 10px; }}
         </style>
@@ -216,7 +222,7 @@ def admin_dashboard():
     <body>
         <h1>TRELLIS Study Dashboard</h1>
         <p class="refresh">Auto-refreshes every 30 seconds</p>
-        
+
         <div class="stats">
             <div class="stat-card">
                 <h2>{total_participants}</h2>
@@ -239,12 +245,27 @@ def admin_dashboard():
                 <th>Refined Wins</th>
                 <th>Baseline Wins</th>
                 <th>Win Rate</th>
+                <th>p-value</th>
+                <th>Significant? (p&lt;0.05)</th>
             </tr>
     """
 
     for obj, stats in object_stats.items():
         win_rate = round(stats['refined_wins'] / stats['responses'] * 100, 1) if stats['responses'] > 0 else 0
-        bar_width = int(win_rate * 1.5)
+        bar_width = int(win_rate * 1.2)
+
+        if stats['responses'] > 0:
+            result = binomtest(stats['refined_wins'], stats['responses'], p=0.5, alternative='two-sided')
+            pval = result.pvalue
+            pval_str = f"{pval:.4f}"
+            if pval < 0.05:
+                sig_str = "<span class='sig'>✅ Yes</span>"
+            else:
+                sig_str = "<span class='not-sig'>❌ No</span>"
+        else:
+            pval_str = "N/A"
+            sig_str = "N/A"
+
         html += f"""
             <tr>
                 <td>{stats['label']}</td>
@@ -255,6 +276,8 @@ def admin_dashboard():
                     <div class="bar-bg"><div class="bar-fill" style="width:{bar_width}px"></div></div>
                     {win_rate}%
                 </td>
+                <td>{pval_str}</td>
+                <td>{sig_str}</td>
             </tr>
         """
 
@@ -264,5 +287,6 @@ def admin_dashboard():
     </html>
     """
     return html
+
 if __name__ == '__main__':
     app.run(debug=True)
