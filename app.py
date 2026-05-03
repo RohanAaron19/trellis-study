@@ -11,7 +11,7 @@ from flask import Response
 app = Flask(__name__)
 app.secret_key = 'trellis_study_secret'
 
-db = TinyDB('database.json')
+db = TinyDB('/data/database.json')
 responses_table = db.table('responses')
 db_lock = Lock()
 
