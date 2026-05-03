@@ -288,5 +288,14 @@ def admin_dashboard():
     """
     return html
 
+@app.route('/admin/import', methods=['POST'])
+def import_data():
+    data = request.get_json()
+    if not data or 'rows' not in data:
+        return {'error': 'no data'}, 400
+    with db_lock:
+        for row in data['rows']:
+            responses_table.insert(row)
+    return {'imported': len(data['rows'])}, 200
 if __name__ == '__main__':
     app.run(debug=True)
