@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Compare to Baseline</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            margin: 0;
+            padding: 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        .progress { color: #888; font-size: 0.9em; margin-bottom: 8px; }
+        .progress-bar-bg { background: #333; border-radius: 6px; height: 6px; margin-bottom: 24px; overflow: hidden; }
+        .progress-bar-fill { background: #6c5ce7; height: 100%; }
+        h1 { font-size: 1.5em; margin-bottom: 4px; }
+        .prompt { color: #aaa; margin-bottom: 24px; }
+        .prompt strong { color: #fff; }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+        .option {
+            background: #25253d;
+            border-radius: 12px;
+            padding: 14px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: border-color 0.15s, transform 0.1s;
+        }
+        .option:hover { border-color: #6c5ce7; transform: translateY(-2px); }
+        .option.selected { border-color: #6c5ce7; background: #2e2e4d; }
+        video {
+            width: 100%;
+            border-radius: 8px;
+            background: #000;
+            display: block;
+        }
+        .option-label {
+            text-align: center;
+            margin-top: 10px;
+            color: #ccc;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+        button {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #6c5ce7;
+            color: white;
+            font-size: 1.05em;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        button:disabled { background: #444; cursor: not-allowed; }
+        button:not(:disabled):hover { background: #5b4bd1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="progress">Object {{ current }} of {{ total }}</div>
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: {{ (current / total * 100)|round(1) }}%"></div>
+        </div>
+
+        <h1>Which one is better?</h1>
+        <div class="prompt">Target object: <strong>{{ label }}</strong></div>
+
+        <form method="post" id="vsForm">
+            <div class="grid">
+                <label class="option" for="opt_A">
+                    <video autoplay loop muted playsinline>
+                        <source src="{{ url_for('serve_video', filename=obj + '/' + video_A + '.mp4') }}" type="video/mp4">
+                    </video>
+                    <div class="option-label">A</div>
+                    <input type="radio" name="choice" value="A" id="opt_A" style="display:none" required>
+                </label>
+                <label class="option" for="opt_B">
+                    <video autoplay loop muted playsinline>
+                        <source src="{{ url_for('serve_video', filename=obj + '/' + video_B + '.mp4') }}" type="video/mp4">
+                    </video>
+                    <div class="option-label">B</div>
+                    <input type="radio" name="choice" value="B" id="opt_B" style="display:none" required>
+                </label>
+            </div>
+            <button type="submit" id="submitBtn" disabled>Continue</button>
+        </form>
+    </div>
+
+    <script>
+        const options = document.querySelectorAll('.option');
+        const submitBtn = document.getElementById('submitBtn');
+        options.forEach(opt => {
+            opt.addEventListener('click', () => {
+                options.forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                submitBtn.disabled = false;
+            });
+        });
+    </script>
+</body>
+</html>
