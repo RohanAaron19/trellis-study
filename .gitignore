@@ -1,4 +1,4 @@
-database.json
 __pycache__/
 *.pyc
 .env
+database.json
