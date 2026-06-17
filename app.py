@@ -17,33 +17,45 @@ db = TinyDB('/data/database.json')
 responses_table = db.table('responses')
 db_lock = Lock()
 
+# ============================================================================
+# OBJECTS — fill this in with the models for this round of the study.
+#
+# Format:
+#   'folder_name': {
+#       'label': 'human readable label shown to participants',
+#       'iterations': ['round2', 'round3', ...]   # refined iterations to choose from
+#                                                    # (round1 is always the baseline)
+#   }
+#
+# Each entry assumes videos live at:
+#   static/videos/<folder_name>/round1.mp4   <- baseline
+#   static/videos/<folder_name>/round2.mp4   <- refined iteration 2
+#   static/videos/<folder_name>/round3.mp4   <- refined iteration 3
+#   ... etc, matching whatever is listed in 'iterations'
+# ============================================================================
 OBJECTS = {
-    '3december_2021_-_cottage_snowglobe': {'label': 'a cottage snow globe',    'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'acoustic_guitar':                    {'label': 'an acoustic guitar',      'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'airplane_crj-900_cityjet_1':         {'label': 'a commercial airplane',   'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'antique_globe_2':                    {'label': 'an antique globe',        'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'avocado':                            {'label': 'an avocado',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'baloons_anil':                       {'label': 'balloons',                'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'banana':                             {'label': 'a banana',                'iterations': ['round2','round3','round4','round5','round6']},
-    'birthday_cake':                      {'label': 'a birthday cake',         'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'cactus':                             {'label': 'a cactus',                'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'hamburger':                          {'label': 'a hamburger',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'hot_air_baloon':                     {'label': 'a hot air balloon',       'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'penguin_plush':                      {'label': 'a penguin plush toy',     'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'skateboard':                         {'label': 'a skateboard',            'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'slice_of_pizza':                     {'label': 'a slice of pizza',        'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'trophy':                             {'label': 'a trophy',                'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'door_key':                           {'label': 'a door key',              'iterations': ['round2','round3','round4','round5','round6','round7']},
-    'knife_94db219c':                     {'label': 'a knife',                 'iterations': ['round2','round3','round4','round5','round6']},
-    'water_bottle':                       {'label': 'a water bottle',          'iterations': ['round2','round3','round4','round5','round6','round7']},
+    # populate before going live
 }
 
 OBJECT_KEYS = list(OBJECTS.keys())
+
+# 7-point rating scale shown on the final page for each object
+RATING_LABELS = [
+    "Doesn't look like anything",
+    "Barely recognizable",
+    "Somewhat recognizable",
+    "Recognizable but flawed",
+    "Good representation",
+    "Very good representation",
+    "Perfect model",
+]
+
 
 @app.route('/videos/<path:filename>')
 def serve_video(filename):
     videos_dir = os.path.join(app.root_path, 'static', 'videos')
     return send_from_directory(videos_dir, filename)
+
 
 @app.route('/')
 def index():
@@ -52,32 +64,34 @@ def index():
     session['phase'] = 'pick_best'
     return render_template('index.html')
 
+
 @app.route('/start')
 def start():
     session['object_index'] = 0
     session['phase'] = 'pick_best'
     session['age'] = request.args.get('birth_year', 'not provided')
+    # Shuffle which objects this participant sees, and how many
+    order = OBJECT_KEYS.copy()
+    random.shuffle(order)
+    session['object_order'] = order
     return redirect(url_for('study'))
+
 
 @app.route('/study', methods=['GET', 'POST'])
 def study():
     if 'participant_id' not in session:
         return redirect(url_for('index'))
 
+    order = session.get('object_order', OBJECT_KEYS)
+
     if request.method == 'POST':
-        choice = request.form.get('choice')
-        obj = OBJECT_KEYS[session['object_index']]
+        obj = order[session['object_index']]
         phase = session['phase']
 
         if phase == 'pick_best':
+            # Page 1: participant picked their favorite iteration among all refined rounds
+            choice = request.form.get('choice')
             session['best_iteration'] = choice
-            if random.random() > 0.5:
-                session['video_A'] = 'round1'
-                session['video_B'] = choice
-            else:
-                session['video_A'] = choice
-                session['video_B'] = 'round1'
-            session['phase'] = 'vs_baseline'
 
             with db_lock:
                 responses_table.insert({
@@ -87,9 +101,14 @@ def study():
                     'phase': 'pick_best',
                     'choice': choice
                 })
+
+            session['phase'] = 'vs_baseline'
             return redirect(url_for('study'))
 
-        else:
+        elif phase == 'vs_baseline':
+            # Page 2: best refined iteration vs baseline, A/B randomized
+            choice = request.form.get('choice')
+
             with db_lock:
                 responses_table.insert({
                     'participant_id': session['participant_id'],
@@ -101,37 +120,91 @@ def study():
                     'chose_round': session['video_A'] if choice == 'A' else session['video_B']
                 })
 
-            session['object_index'] += 1
-            session['phase'] = 'pick_best'
-            if session['object_index'] >= len(OBJECT_KEYS):
-                return redirect(url_for('done'))
+            session['phase'] = 'rate'
             return redirect(url_for('study'))
 
-    obj = OBJECT_KEYS[session['object_index']]
+        else:
+            # Page 3: 7-point rating scale on the winning video from page 2
+            rating = request.form.get('rating')
+
+            with db_lock:
+                responses_table.insert({
+                    'participant_id': session['participant_id'],
+                    'object': obj,
+                    'phase': 'rate',
+                    'rated_video': session.get('winner_video', 'unknown'),
+                    'rating': rating
+                })
+
+            session['object_index'] += 1
+            session['phase'] = 'pick_best'
+
+            if session['object_index'] >= len(order):
+                return redirect(url_for('done'))
+
+            return redirect(url_for('study'))
+
+    # ---- GET: render the current phase ----
+    obj = order[session['object_index']]
     phase = session['phase']
     label = OBJECTS[obj]['label']
     current = session['object_index'] + 1
-    total = len(OBJECT_KEYS)
+    total = len(order)
 
     if phase == 'pick_best':
-        return render_template('pick_best.html',
-                               obj=obj,
-                               label=label,
-                               iterations=OBJECTS[obj]['iterations'],
-                               current=current,
-                               total=total)
-    else:
-        return render_template('vs_baseline.html',
-                               obj=obj,
-                               label=label,
-                               video_A=session['video_A'],
-                               video_B=session['video_B'],
-                               current=current,
-                               total=total)
+        return render_template(
+            'pick_best.html',
+            obj=obj,
+            label=label,
+            iterations=OBJECTS[obj]['iterations'],
+            current=current,
+            total=total
+        )
+
+    elif phase == 'vs_baseline':
+        best_choice = session.get('best_iteration')
+        if random.random() > 0.5:
+            session['video_A'] = 'round1'
+            session['video_B'] = best_choice
+        else:
+            session['video_A'] = best_choice
+            session['video_B'] = 'round1'
+
+        return render_template(
+            'vs_baseline.html',
+            obj=obj,
+            label=label,
+            video_A=session['video_A'],
+            video_B=session['video_B'],
+            current=current,
+            total=total
+        )
+
+    else:  # rate
+        # Determine which video "won" page 2 to show on the rating page
+        last_response = responses_table.search(
+            lambda r: r.get('participant_id') == session['participant_id']
+            and r.get('object') == obj
+            and r.get('phase') == 'vs_baseline'
+        )
+        winner_video = last_response[-1]['chose_round'] if last_response else 'round1'
+        session['winner_video'] = winner_video
+
+        return render_template(
+            'rate.html',
+            obj=obj,
+            label=label,
+            video=winner_video,
+            rating_labels=RATING_LABELS,
+            current=current,
+            total=total
+        )
+
 
 @app.route('/done')
 def done():
     return render_template('done.html')
+
 
 @app.route('/admin/download')
 def download_data():
@@ -140,7 +213,8 @@ def download_data():
         return "No data yet.", 200
 
     output = io.StringIO()
-    fieldnames = ['participant_id', 'age', 'object', 'phase', 'choice', 'video_A', 'video_B', 'chose_round']
+    fieldnames = ['participant_id', 'age', 'object', 'phase', 'choice',
+                  'video_A', 'video_B', 'chose_round', 'rated_video', 'rating']
     writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
     writer.writeheader()
     writer.writerows(all_responses)
@@ -151,10 +225,12 @@ def download_data():
         headers={'Content-Disposition': 'attachment; filename=study_results.csv'}
     )
 
+
 @app.route('/admin/db')
 def view_db():
     all_responses = responses_table.all()
     return f"<pre>{json.dumps(all_responses, indent=2)}</pre>"
+
 
 @app.route('/admin')
 def admin_dashboard():
@@ -163,9 +239,7 @@ def admin_dashboard():
     completed = {}
     for r in all_responses:
         pid = r['participant_id']
-        if pid not in completed:
-            completed[pid] = set()
-        completed[pid].add(r['object'])
+        completed.setdefault(pid, set()).add(r['object'])
 
     total_participants = len(completed)
 
@@ -176,10 +250,16 @@ def admin_dashboard():
             'responses': 0,
             'refined_wins': 0,
             'baseline_wins': 0,
+            'avg_rating': None,
+            'rating_count': 0,
+            'rating_sum': 0,
         }
 
     for r in all_responses:
-        if r['phase'] == 'vs_baseline' and r['object'] in object_stats:
+        if r.get('object') not in object_stats:
+            continue
+
+        if r['phase'] == 'vs_baseline':
             chose = r.get('chose_round', 'round1')
             if not str(chose).startswith('round'):
                 continue
@@ -189,6 +269,18 @@ def admin_dashboard():
             else:
                 object_stats[r['object']]['baseline_wins'] += 1
 
+        elif r['phase'] == 'rate':
+            try:
+                rating_val = float(r.get('rating'))
+                object_stats[r['object']]['rating_sum'] += rating_val
+                object_stats[r['object']]['rating_count'] += 1
+            except (TypeError, ValueError):
+                pass
+
+    for obj, stats in object_stats.items():
+        if stats['rating_count'] > 0:
+            stats['avg_rating'] = round(stats['rating_sum'] / stats['rating_count'], 2)
+
     total_comparisons = sum(o['responses'] for o in object_stats.values())
     total_refined_wins = sum(o['refined_wins'] for o in object_stats.values())
     overall_win_rate = round((total_refined_wins / total_comparisons * 100), 1) if total_comparisons > 0 else 0
@@ -197,57 +289,49 @@ def admin_dashboard():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Study Admin Dashboard</title>
-        <meta http-equiv="refresh" content="30">
-        <style>
-            body {{ font-family: Arial, sans-serif; max-width: 1200px; margin: 40px auto; background: #f9f9f9; padding: 0 20px; }}
-            h1 {{ color: #2c3e50; }}
-            .stats {{ display: flex; gap: 20px; margin: 30px 0; flex-wrap: wrap; }}
-            .stat-card {{ background: white; border-radius: 10px; padding: 20px 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; }}
-            .stat-card h2 {{ font-size: 2.5em; color: #2c3e50; margin: 0; }}
-            .stat-card p {{ color: #888; margin: 5px 0 0; }}
-            table {{ width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }}
-            th {{ background: #2c3e50; color: white; padding: 12px 16px; text-align: left; font-size: 0.9em; }}
-            td {{ padding: 10px 16px; border-bottom: 1px solid #eee; font-size: 0.9em; }}
-            tr:last-child td {{ border-bottom: none; }}
-            .win {{ color: green; font-weight: bold; }}
-            .lose {{ color: #e74c3c; font-weight: bold; }}
-            .sig {{ color: green; font-weight: bold; }}
-            .not-sig {{ color: #e74c3c; }}
-            .bar-bg {{ background: #eee; border-radius: 4px; height: 10px; width: 120px; display: inline-block; vertical-align: middle; }}
-            .bar-fill {{ background: #2c3e50; border-radius: 4px; height: 10px; }}
-            .refresh {{ color: #888; font-size: 0.85em; margin-top: 10px; }}
-        </style>
+    <title>Study Admin Dashboard</title>
+    <meta http-equiv="refresh" content="30">
+    <style>
+        body {{ font-family: Arial, sans-serif; max-width: 1200px; margin: 40px auto; background: #f9f9f9; padding: 0 20px; }}
+        h1 {{ color: #2c3e50; }}
+        .stats {{ display: flex; gap: 20px; margin: 30px 0; flex-wrap: wrap; }}
+        .stat-card {{ background: white; border-radius: 10px; padding: 20px 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; }}
+        .stat-card h2 {{ font-size: 2.5em; color: #2c3e50; margin: 0; }}
+        .stat-card p {{ color: #888; margin: 5px 0 0; }}
+        table {{ width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }}
+        th {{ background: #2c3e50; color: white; padding: 12px 16px; text-align: left; font-size: 0.9em; }}
+        td {{ padding: 10px 16px; border-bottom: 1px solid #eee; font-size: 0.9em; }}
+        tr:last-child td {{ border-bottom: none; }}
+        .win {{ color: green; font-weight: bold; }}
+        .lose {{ color: #e74c3c; font-weight: bold; }}
+        .sig {{ color: green; font-weight: bold; }}
+        .not-sig {{ color: #e74c3c; }}
+        .bar-bg {{ background: #eee; border-radius: 4px; height: 10px; width: 120px; display: inline-block; vertical-align: middle; }}
+        .bar-fill {{ background: #2c3e50; border-radius: 4px; height: 10px; }}
+        .refresh {{ color: #888; font-size: 0.85em; margin-top: 10px; }}
+    </style>
     </head>
     <body>
-        <h1>TRELLIS Study Dashboard</h1>
-        <p class="refresh">Auto-refreshes every 30 seconds</p>
+    <h1>TRELLIS Study Dashboard</h1>
+    <p class="refresh">Auto-refreshes every 30 seconds</p>
 
-        <div class="stats">
-            <div class="stat-card">
-                <h2>{total_participants}</h2>
-                <p>Participants</p>
-            </div>
-            <div class="stat-card">
-                <h2>{total_comparisons}</h2>
-                <p>Total Comparisons</p>
-            </div>
-            <div class="stat-card">
-                <h2>{overall_win_rate}%</h2>
-                <p>Refined Model Win Rate</p>
-            </div>
-        </div>
+    <div class="stats">
+        <div class="stat-card"><h2>{total_participants}</h2><p>Participants</p></div>
+        <div class="stat-card"><h2>{total_comparisons}</h2><p>Total Comparisons</p></div>
+        <div class="stat-card"><h2>{overall_win_rate}%</h2><p>Refined Model Win Rate</p></div>
+    </div>
 
-        <table>
-            <tr>
-                <th>Object</th>
-                <th>Responses</th>
-                <th>Refined Wins</th>
-                <th>Baseline Wins</th>
-                <th>Win Rate</th>
-                <th>p-value</th>
-                <th>Significant? (p&lt;0.05)</th>
-            </tr>
+    <table>
+    <tr>
+        <th>Object</th>
+        <th>Responses</th>
+        <th>Refined Wins</th>
+        <th>Baseline Wins</th>
+        <th>Win Rate</th>
+        <th>p-value</th>
+        <th>Significant? (p&lt;0.05)</th>
+        <th>Avg Rating (1-7)</th>
+    </tr>
     """
 
     for obj, stats in object_stats.items():
@@ -258,44 +342,50 @@ def admin_dashboard():
             result = binomtest(stats['refined_wins'], stats['responses'], p=0.5, alternative='two-sided')
             pval = result.pvalue
             pval_str = f"{pval:.4f}"
-            if pval < 0.05:
-                sig_str = "<span class='sig'>✅ Yes</span>"
-            else:
-                sig_str = "<span class='not-sig'>❌ No</span>"
+            sig_str = "<span class='sig'>✅ Yes</span>" if pval < 0.05 else "<span class='not-sig'>❌ No</span>"
         else:
             pval_str = "N/A"
             sig_str = "N/A"
 
+        avg_rating_str = f"{stats['avg_rating']} ({stats['rating_count']})" if stats['avg_rating'] is not None else "N/A"
+
         html += f"""
-            <tr>
-                <td>{stats['label']}</td>
-                <td>{stats['responses']}</td>
-                <td class="win">{stats['refined_wins']}</td>
-                <td class="lose">{stats['baseline_wins']}</td>
-                <td>
-                    <div class="bar-bg"><div class="bar-fill" style="width:{bar_width}px"></div></div>
-                    {win_rate}%
-                </td>
-                <td>{pval_str}</td>
-                <td>{sig_str}</td>
-            </tr>
+        <tr>
+            <td>{stats['label']}</td>
+            <td>{stats['responses']}</td>
+            <td class="win">{stats['refined_wins']}</td>
+            <td class="lose">{stats['baseline_wins']}</td>
+            <td>
+                <div class="bar-bg"><div class="bar-fill" style="width:{bar_width}px"></div></div>
+                {win_rate}%
+            </td>
+            <td>{pval_str}</td>
+            <td>{sig_str}</td>
+            <td>{avg_rating_str}</td>
+        </tr>
         """
 
     html += """
-        </table>
+    </table>
     </body>
     </html>
     """
+
     return html
+
 
 @app.route('/admin/import', methods=['POST'])
 def import_data():
     data = request.get_json()
     if not data or 'rows' not in data:
         return {'error': 'no data'}, 400
+
     with db_lock:
         for row in data['rows']:
             responses_table.insert(row)
+
     return {'imported': len(data['rows'])}, 200
+
+
 if __name__ == '__main__':
     app.run(debug=True)
