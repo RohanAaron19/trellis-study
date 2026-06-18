@@ -98,13 +98,13 @@ OBJECTS_PER_PARTICIPANT = 20
 
 # 7-point rating scale shown on the final page for each object
 RATING_LABELS = [
-    "Doesn't look like anything",
-    "Barely recognizable",
-    "Somewhat recognizable",
-    "Recognizable but flawed",
-    "Good representation",
-    "Very good representation",
-    "Perfect model",
+    "Doesn't look like anything — no recognizable form",
+    "Looks like the wrong thing — clear form, wrong identity",
+    "Goes in the right direction — vague hints of the correct object",
+    "Recognizable knowing what it's supposed to be — identifiable only with knowing it",
+    "Somewhat looks like the target object — identifiable on its own, but loosely",
+    "Clearly recognizable as the target — confidently the right object, but with minor issues",
+    "Very convincing — no visual issues",
 ]
 
 
