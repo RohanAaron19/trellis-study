@@ -1,4 +1,4 @@
 Flask==3.0.3
-tinydb==4.8.0
-scipy==1.13.1
-gunicorn==22.0.0
+   tinydb==4.8.0
+   scipy>=1.13.1
+   gunicorn==22.0.0
