@@ -28,40 +28,73 @@ db_lock = Lock()
 #   }
 #
 # Each entry assumes videos live at:
-#   static/videos/<folder_name>/round1.mp4   <- baseline
-#   static/videos/<folder_name>/round2.mp4   <- refined iteration 2
-#   static/videos/<folder_name>/round3.mp4   <- refined iteration 3
+#   static/<folder_name>/round1.mp4   <- baseline
+#   static/<folder_name>/round2.mp4   <- refined iteration 2
+#   static/<folder_name>/round3.mp4   <- refined iteration 3
 #   ... etc, matching whatever is listed in 'iterations'
 # ============================================================================
 OBJECTS = {
-    'apple_002':     {'label': 'an apple',          'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'bread_000':     {'label': 'bread',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'bunny_002':     {'label': 'a bunny',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'butterfly_000': {'label': 'a butterfly',         'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'cake_002':      {'label': 'a cake',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'candy_000':     {'label': 'candy',               'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'closet_001':    {'label': 'a closet',            'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'donut_002':     {'label': 'a donut',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'flower_001':    {'label': 'a flower',            'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'glass_002':     {'label': 'a glass',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'keyboard_000':  {'label': 'a keyboard',          'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'lion_000':      {'label': 'a lion',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'orange_001':    {'label': 'an orange',           'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'pc_mouse_001':  {'label': 'a computer mouse',    'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'piano_001':     {'label': 'a piano',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'pizza_000':     {'label': 'a pizza',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'radio_000':     {'label': 'a radio',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'radio_001':     {'label': 'a radio',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'sheep_000':     {'label': 'a sheep',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'shoe_000':      {'label': 'a shoe',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'stove_001':     {'label': 'a stove',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'toaster_001':   {'label': 'a toaster',           'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'train_001':     {'label': 'a train',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'trashcan_000':  {'label': 'a trash can',         'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
-    'whale_001':     {'label': 'a whale',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'airplane_002':   {'label': 'an airplane',        'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'apple_002':      {'label': 'an apple',           'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'ball_001':       {'label': 'a ball',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'ball_002':       {'label': 'a ball',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'banana_001':     {'label': 'a banana',           'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'bicycle_001':    {'label': 'a bicycle',          'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'boat_002':       {'label': 'a boat',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'bottle_001':     {'label': 'a bottle',           'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'bread_001':      {'label': 'bread',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'bread_002':      {'label': 'bread',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'bunny_001':      {'label': 'a bunny',            'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'bus_001':        {'label': 'a bus',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'butterfly_001':  {'label': 'a butterfly',        'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'cake_001':       {'label': 'a cake',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'candy_000':      {'label': 'candy',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'candy_002':      {'label': 'candy',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'cat_000':        {'label': 'a cat',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'chair_001':      {'label': 'a chair',            'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'chess_piece_000':{'label': 'a chess piece',      'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'chicken_000':    {'label': 'a chicken',          'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'cookie_000':     {'label': 'a cookie',           'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'crab_001':       {'label': 'a crab',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'cow_001':        {'label': 'a cow',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'cupcake_001':    {'label': 'a cupcake',          'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'dinosaur_001':   {'label': 'a dinosaur',         'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'dog_001':        {'label': 'a dog',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'donut_002':      {'label': 'a donut',            'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'elephant_001':   {'label': 'an elephant',        'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'fish_000':       {'label': 'a fish',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'flower_000':     {'label': 'a flower',           'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'fries_000':      {'label': 'fries',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'frog_000':       {'label': 'a frog',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'giraffe_001':    {'label': 'a giraffe',          'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'grapes_000':     {'label': 'grapes',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'glass_001':      {'label': 'a glass',            'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'guitar_000':     {'label': 'a guitar',           'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'hamburger_000':  {'label': 'a hamburger',        'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'hat_001':        {'label': 'a hat',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'helicopter_000': {'label': 'a helicopter',       'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'horse_000':      {'label': 'a horse',            'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'ice_cream_001':  {'label': 'ice cream',          'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'keyboard_000':   {'label': 'a keyboard',         'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'knife_001':      {'label': 'a knife',            'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'ladder_000':     {'label': 'a ladder',           'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'laptop_001':     {'label': 'a laptop',           'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'light_bulb_001': {'label': 'a light bulb',       'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'mouse_000':      {'label': 'a mouse',            'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'marker_002':     {'label': 'a marker',           'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'motorcycle_001': {'label': 'a motorcycle',       'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'mug_001':        {'label': 'a mug',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'octopus_001':    {'label': 'an octopus',         'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'orange_001':     {'label': 'an orange',          'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'pear_001':       {'label': 'a pear',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'pencil_011':     {'label': 'a pencil',           'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'penguin_001':    {'label': 'a penguin',          'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'truck_001':      {'label': 'a truck',            'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'whale_000':      {'label': 'a whale',            'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
 }
 
 OBJECT_KEYS = list(OBJECTS.keys())
+OBJECTS_PER_PARTICIPANT = 20
 
 # 7-point rating scale shown on the final page for each object
 RATING_LABELS = [
@@ -77,7 +110,7 @@ RATING_LABELS = [
 
 @app.route('/videos/<path:filename>')
 def serve_video(filename):
-    videos_dir = os.path.join(app.root_path, 'static', 'videos')
+    videos_dir = os.path.join(app.root_path, 'static')
     return send_from_directory(videos_dir, filename)
 
 
@@ -94,9 +127,12 @@ def start():
     session['object_index'] = 0
     session['phase'] = 'pick_best'
     session['age'] = request.args.get('birth_year', 'not provided')
-    # Shuffle which objects this participant sees, and how many
-    order = OBJECT_KEYS.copy()
-    random.shuffle(order)
+    # Each participant sees a random subset of OBJECTS_PER_PARTICIPANT objects,
+    # not the full OBJECT_KEYS list, so the study stays short per-person while
+    # still covering all objects across many participants.
+    pool = OBJECT_KEYS.copy()
+    random.shuffle(pool)
+    order = pool[:OBJECTS_PER_PARTICIPANT]
     session['object_order'] = order
     return redirect(url_for('study'))
 
