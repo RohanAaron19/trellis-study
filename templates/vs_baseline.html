@@ -43,6 +43,20 @@
             background: #000;
             display: block;
         }
+        .video-placeholder {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            border-radius: 8px;
+            background: #000;
+            color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.9em;
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
         .option-label {
             text-align: center;
             margin-top: 10px;
@@ -81,16 +95,12 @@
         <form method="post" id="vsForm">
             <div class="grid">
                 <label class="option" for="opt_A">
-                    <video autoplay loop muted playsinline>
-                        <source src="{{ url_for('serve_video', filename=obj + '/' + video_A + '.mp4') }}" type="video/mp4">
-                    </video>
+                    <div class="video-placeholder">PLACEHOLDER<br>A</div>
                     <div class="option-label">A</div>
                     <input type="radio" name="choice" value="A" id="opt_A" style="display:none" required>
                 </label>
                 <label class="option" for="opt_B">
-                    <video autoplay loop muted playsinline>
-                        <source src="{{ url_for('serve_video', filename=obj + '/' + video_B + '.mp4') }}" type="video/mp4">
-                    </video>
+                    <div class="video-placeholder">PLACEHOLDER<br>B</div>
                     <div class="option-label">B</div>
                     <input type="radio" name="choice" value="B" id="opt_B" style="display:none" required>
                 </label>

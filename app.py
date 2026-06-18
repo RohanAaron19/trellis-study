@@ -34,7 +34,31 @@ db_lock = Lock()
 #   ... etc, matching whatever is listed in 'iterations'
 # ============================================================================
 OBJECTS = {
-    # populate before going live
+    'apple_002':     {'label': 'an apple',          'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'bread_000':     {'label': 'bread',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'bunny_002':     {'label': 'a bunny',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'butterfly_000': {'label': 'a butterfly',         'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'cake_002':      {'label': 'a cake',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'candy_000':     {'label': 'candy',               'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'closet_001':    {'label': 'a closet',            'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'donut_002':     {'label': 'a donut',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'flower_001':    {'label': 'a flower',            'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'glass_002':     {'label': 'a glass',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'keyboard_000':  {'label': 'a keyboard',          'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'lion_000':      {'label': 'a lion',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'orange_001':    {'label': 'an orange',           'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'pc_mouse_001':  {'label': 'a computer mouse',    'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'piano_001':     {'label': 'a piano',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'pizza_000':     {'label': 'a pizza',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'radio_000':     {'label': 'a radio',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'radio_001':     {'label': 'a radio',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'sheep_000':     {'label': 'a sheep',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'shoe_000':      {'label': 'a shoe',              'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'stove_001':     {'label': 'a stove',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'toaster_001':   {'label': 'a toaster',           'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'train_001':     {'label': 'a train',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'trashcan_000':  {'label': 'a trash can',         'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
+    'whale_001':     {'label': 'a whale',             'iterations': ['round2','round3','round4','round5','round6','round7','round8']},
 }
 
 OBJECT_KEYS = list(OBJECTS.keys())

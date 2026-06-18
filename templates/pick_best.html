@@ -40,6 +40,20 @@
             background: #000;
             display: block;
         }
+        .video-placeholder {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            border-radius: 8px;
+            background: #000;
+            color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.85em;
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
         .option-label {
             text-align: center;
             margin-top: 8px;
@@ -78,9 +92,7 @@
             <div class="grid">
                 {% for it in iterations %}
                 <label class="option" for="opt_{{ it }}">
-                    <video autoplay loop muted playsinline>
-                        <source src="{{ url_for('serve_video', filename=obj + '/' + it + '.mp4') }}" type="video/mp4">
-                    </video>
+                    <div class="video-placeholder">PLACEHOLDER<br>{{ it }}</div>
                     <div class="option-label">Version {{ loop.index }}</div>
                     <input type="radio" name="choice" value="{{ it }}" id="opt_{{ it }}" style="display:none" required>
                 </label>
