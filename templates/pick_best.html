@@ -92,7 +92,9 @@
             <div class="grid">
                 {% for it in iterations %}
                 <label class="option" for="opt_{{ it }}">
-                    <div class="video-placeholder">PLACEHOLDER<br>{{ it }}</div>
+                    <video muted loop autoplay playsinline>
+                       <source src="{{ url_for('serve_video', filename=obj + '/' + it + '.mp4') }}" type="video/mp4">
+                    </video>
                     <div class="option-label">Version {{ loop.index }}</div>
                     <input type="radio" name="choice" value="{{ it }}" id="opt_{{ it }}" style="display:none" required>
                 </label>
