@@ -39,23 +39,11 @@
         .option.selected { border-color: #6c5ce7; background: #2e2e4d; }
         video {
             width: 100%;
-            border-radius: 8px;
-            background: #000;
-            display: block;
-        }
-        .video-placeholder {
-            width: 100%;
             aspect-ratio: 4 / 3;
             border-radius: 8px;
             background: #000;
-            color: #555;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            font-size: 0.9em;
-            font-family: monospace;
-            letter-spacing: 1px;
+            display: block;
+            object-fit: cover;
         }
         .option-label {
             text-align: center;
@@ -88,19 +76,23 @@
         <div class="progress-bar-bg">
             <div class="progress-bar-fill" style="width: {{ (current / total * 100)|round(1) }}%"></div>
         </div>
-
+ 
         <h1>Which one is better?</h1>
         <div class="prompt">Target object: <strong>{{ label }}</strong></div>
-
+ 
         <form method="post" id="vsForm">
             <div class="grid">
                 <label class="option" for="opt_A">
-                    <div class="video-placeholder">PLACEHOLDER<br>A</div>
+                    <video muted loop autoplay playsinline>
+                        <source src="{{ url_for('serve_video', filename=obj + '/' + video_A + '.mp4') }}" type="video/mp4">
+                    </video>
                     <div class="option-label">A</div>
                     <input type="radio" name="choice" value="A" id="opt_A" style="display:none" required>
                 </label>
                 <label class="option" for="opt_B">
-                    <div class="video-placeholder">PLACEHOLDER<br>B</div>
+                    <video muted loop autoplay playsinline>
+                        <source src="{{ url_for('serve_video', filename=obj + '/' + video_B + '.mp4') }}" type="video/mp4">
+                    </video>
                     <div class="option-label">B</div>
                     <input type="radio" name="choice" value="B" id="opt_B" style="display:none" required>
                 </label>
@@ -108,7 +100,7 @@
             <button type="submit" id="submitBtn" disabled>Continue</button>
         </form>
     </div>
-
+ 
     <script>
         const options = document.querySelectorAll('.option');
         const submitBtn = document.getElementById('submitBtn');
