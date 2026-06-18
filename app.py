@@ -292,10 +292,10 @@ def view_db():
     return f"<pre>{json.dumps(all_responses, indent=2)}</pre>"
 
 @app.route('/admin/reset')
-   def reset_data():
-       with db_lock:
-           responses_table.truncate()
-       return "Database cleared.", 200
+def reset_data():
+    with db_lock:
+        responses_table.truncate()
+    return "Database cleared.", 200
 
 
 @app.route('/admin')
