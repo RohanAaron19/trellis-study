@@ -26,23 +26,11 @@
         }
         video {
             width: 100%;
-            border-radius: 8px;
-            background: #000;
-            display: block;
-        }
-        .video-placeholder {
-            width: 100%;
             aspect-ratio: 4 / 3;
             border-radius: 8px;
             background: #000;
-            color: #555;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            font-size: 0.9em;
-            font-family: monospace;
-            letter-spacing: 1px;
+            display: block;
+            object-fit: cover;
         }
         .scale {
             display: flex;
@@ -101,14 +89,16 @@
         <div class="progress-bar-bg">
             <div class="progress-bar-fill" style="width: {{ (current / total * 100)|round(1) }}%"></div>
         </div>
-
+ 
         <h1>How well does this match the prompt?</h1>
         <div class="prompt">Target object: <strong>{{ label }}</strong></div>
-
+ 
         <div class="video-wrap">
-            <div class="video-placeholder">PLACEHOLDER<br>{{ video }}</div>
+            <video muted loop autoplay playsinline>
+                <source src="{{ url_for('serve_video', filename=obj + '/' + video + '.mp4') }}" type="video/mp4">
+            </video>
         </div>
-
+ 
         <form method="post" id="rateForm">
             <div class="scale">
                 {% for lbl in rating_labels %}
@@ -124,7 +114,7 @@
             </button>
         </form>
     </div>
-
+ 
     <script>
         const options = document.querySelectorAll('.scale-option');
         const submitBtn = document.getElementById('submitBtn');
